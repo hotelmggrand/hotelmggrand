@@ -1,148 +1,81 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Hotel Booking Form</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <title>Hotel Owner Login</title>
   <style>
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: Arial, sans-serif;
+      max-width: 400px;
+      margin: 3rem auto;
+      padding: 2rem;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+    }
+    input, button {
+      width: 100%;
+      margin: 0.5rem 0;
+      padding: 0.8rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1e40af;
+    }
+    #error {
+      color: red;
+      margin-top: 1rem;
+      min-height: 1.5rem;
     }
   </style>
 </head>
-<body class="bg-gradient-to-tr from-blue-100 to-purple-100 min-h-screen flex items-center justify-center p-4">
+<body>
+  <h2>Login</h2>
+  <input id="email" placeholder="Email" type="email" />
+  <input id="password" placeholder="Password" type="password" />
+  <button onclick="login()">Login</button>
+  <p id="error"></p>
 
-  <div class="w-full max-w-3xl bg-white p-8 rounded-2xl shadow-2xl border border-gray-200">
-    <h2 class="text-4xl font-bold mb-6 text-center text-gray-800">Book Your Stay at Hotel MG Grand</h2>
-
-    <form id="bookingForm" class="space-y-6">
-      <!-- Dates -->
-      <div class="grid md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Check-in</label>
-          <input type="date" id="checkin" class="w-full border rounded-lg p-3 focus:ring-blue-500 focus:border-blue-500" required />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Check-out</label>
-          <input type="date" id="checkout" class="w-full border rounded-lg p-3 focus:ring-blue-500 focus:border-blue-500" required />
-        </div>
-      </div>
-
-      <!-- Room Info -->
-      <div class="grid md:grid-cols-3 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Room Type</label>
-          <select id="roomType" class="w-full border rounded-lg p-3" required>
-            <option value="">Select</option>
-            <option value="Single">Single</option>
-            <option value="Double">Double</option>
-            <option value="Suite">Suite</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Rooms</label>
-          <input type="number" id="rooms" min="1" class="w-full border rounded-lg p-3" placeholder="e.g. 2" required />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Guests</label>
-          <input type="number" id="guests" min="1" class="w-full border rounded-lg p-3" placeholder="e.g. 4" required />
-        </div>
-      </div>
-
-      <!-- Personal Info -->
-      <div class="grid md:grid-cols-3 gap-4">
-        <input type="text" id="name" class="border rounded-lg p-3" placeholder="Full Name" required />
-        <input type="tel" id="phone" class="border rounded-lg p-3" placeholder="Phone Number" required />
-        <input type="email" id="email" class="border rounded-lg p-3" placeholder="Email Address" required />
-      </div>
-
-      <!-- Buttons -->
-      <div class="text-center pt-4">
-        <button type="button" onclick="submitBooking('online')" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold mr-4 shadow-md transition">
-          Pay Now
-        </button>
-        <button type="button" onclick="submitBooking('offline')" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold shadow-md transition">
-          Pay at Check-in
-        </button>
-      </div>
-    </form>
-  </div>
-
-  <!-- Firebase Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCaivB2X2R9aP21rxTnm678o3bT-0DHu5g",
       authDomain: "hotelmggrand-20b4a.firebaseapp.com",
       projectId: "hotelmggrand-20b4a",
-      storageBucket: "hotelmggrand-20b4a.firebasestorage.app",
-      messagingSenderId: "167202217225",
-      appId: "1:167202217225:web:bb72dd783df54ff85707d8",
-      measurementId: "G-LLXL5CPJJC"
+      // ...other config properties
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const auth = getAuth(app);
 
-    // Replace this with your deployed Google Apps Script Web App URL
-    const googleAppsScriptUrl = "https://script.google.com/macros/s/AKfycbw-iGsMvU3AEyC4I8XzS_0cK09Jc2ctfHchiSHroCTZs3_J81wvdJ_MoWkjZCCpnnL2/exec";
+    async function login() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const errorP = document.getElementById("error");
+      errorP.textContent = "";
 
-    window.submitBooking = async function(paymentMethod) {
-      const bookingDetails = {
-        checkin: document.getElementById("checkin").value,
-        checkout: document.getElementById("checkout").value,
-        roomType: document.getElementById("roomType").value,
-        rooms: document.getElementById("rooms").value,
-        guests: document.getElementById("guests").value,
-        name: document.getElementById("name").value.trim(),
-        phone: document.getElementById("phone").value.trim(),
-        email: document.getElementById("email").value.trim(),
-        paymentMethod,
-        timestamp: new Date().toISOString()
-      };
-
-      // Validation
-      for (let key in bookingDetails) {
-        if (!bookingDetails[key]) {
-          alert("Please fill all fields.");
-          return;
-        }
+      if (!email || !password) {
+        errorP.textContent = "Please enter email and password.";
+        return;
       }
 
       try {
-        // Save to Firestore
-        await addDoc(collection(db, "bookings"), {
-          ...bookingDetails,
-          timestamp: serverTimestamp()
-        });
-        console.log("Saved to Firebase");
-
-        // Send to Google Sheet
-        const response = await fetch(googleAppsScriptUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(bookingDetails)
-        });
-
-        const result = await response.json();
-
-        if (result.result === "success") {
-          alert("Booking successful!");
-          window.location.href = "thankyou.html"; // Redirect to thank you page
-        } else {
-          alert("Booking saved to Firebase, but failed to update Google Sheet.");
-        }
-      } catch (err) {
-        console.error("Booking error:", err);
-        alert("Booking failed. Please try again.");
+        await signInWithEmailAndPassword(auth, email, password);
+        window.location.href = "dashboard.html";
+      } catch (error) {
+        errorP.textContent = error.message;
       }
-    };
+    }
+
+    window.login = login; // expose to global scope for button onclick
   </script>
 </body>
 </html>
